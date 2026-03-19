@@ -1,0 +1,20 @@
+init_config:
+instances:
+  - dbm: true
+    host: "%%env_DATABASE_HOST%%"
+    port: 1433
+    username: datadog
+    password: "%%env_DATABASE_PASSWORD%%"
+    connector: 'odbc'
+    driver: 'ODBC Driver 18 for SQL Server' # This is the section header of odbcinst.ini
+    connection_string: "TrustServerCertificate=yes;"
+    database_autodiscovery: true
+    schemas_collection:
+      enabled: true
+    database_metrics:
+      index_usage_metrics:
+        enabled: true
+    agent_jobs:
+      enabled: true
+      collection_interval: 15
+      history_row_limit: 10000

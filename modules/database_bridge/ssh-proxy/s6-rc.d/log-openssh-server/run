@@ -1,0 +1,9 @@
+#!/usr/bin/with-contenv bash
+
+USER_NAME=${USER_NAME:-linuxserver.io}
+
+# This file is based on the upstream repo
+# https://github.com/linuxserver/docker-openssh-server/tree/master/root/etc/s6-overlay/s6-rc.d/log-openssh-server
+# "T 1" is added to make the logger output to stdout (fd 1)
+exec \
+    s6-setuidgid "${USER_NAME}" s6-log T 1 n30 s10000000 S30000000 T !"gzip -nq9" /config/logs/openssh

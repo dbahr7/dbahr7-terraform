@@ -1,0 +1,18 @@
+# in the event the approval bot needs to be re-ran, this will attempt to do so
+name: Re-run approval check
+
+on:
+  pull_request_review:
+    types: [ submitted ]
+
+jobs:
+  main:
+    name: Re-run approval check
+    runs-on: linux-arm64
+    if: ${{ github.event.review.state == 'approved' }}
+    steps:
+      - name: Rerun Yoda Bot Approval Check
+        uses: dbahr7/rerun-checks@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          check-names: 'Check Asana task is approved'

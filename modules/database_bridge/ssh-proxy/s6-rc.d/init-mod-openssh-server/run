@@ -1,0 +1,33 @@
+#!/usr/bin/with-contenv bash
+# -*- mode: shell-script -*-
+
+config_path=${1:-/etc/ssh/sshd_config}
+
+# Enable some actions in a restricted manner
+sed -i '/^AllowTcpForwarding/c\AllowTcpForwarding local' "$config_path"
+sed -i '/^GatewayPorts/c\GatewayPorts clientspecified' "$config_path"
+
+# Disable unnecessary actions
+sed -i '/^X11Forwarding/c\X11Forwarding no' "$config_path"
+sed -i '/^PermitTunnel/c\PermitTunnel no' "$config_path"
+sed -i '/^AllowAgentForwarding/c\AllowAgentForwarding no' "$config_path"
+sed --regexp-extended -i '/^Subsystem\s+sftp/c\Subsystem sftp \/bin\/false' "$config_path"
+echo "ForceCommand echo 'This account can only be used for local port forwarding'" >> "$config_path"
+
+# Limit local port forwarding destination
+if [[ -n "$PERMIT_OPEN_HOST_VAR" ]] && [[ -n "$PERMIT_OPEN_PORT_VAR" ]]; then
+    echo "PermitOpen ${!PERMIT_OPEN_HOST_VAR}:${!PERMIT_OPEN_PORT_VAR}" >> "$config_path"
+fi
+if [[ -n "$PERMIT_OPEN_HOST_VARS" ]] && [[ -n "$PERMIT_OPEN_PORT_VARS" ]]; then
+    # Split by ','
+    IFS=','; host_vars=($PERMIT_OPEN_HOST_VARS); unset IFS;
+    IFS=','; port_vars=($PERMIT_OPEN_PORT_VARS); unset IFS;
+    permit_open_value=""
+    for index in "${!host_vars[@]}"; do
+        # Resolve the actual host and port values to allow.
+        # For example, if host_vars[$index] contains the string "DATABASE_HOST",
+        # the host to allow is the value of the DATABASE_HOST env var.
+        permit_open_value+="${!host_vars[$index]}:${!port_vars[$index]} "
+    done
+    echo "PermitOpen $permit_open_value" >> "$config_path"
+fi

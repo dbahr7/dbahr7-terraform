@@ -1,0 +1,27 @@
+name: Approvals
+on:
+  merge_group:
+  pull_request:
+    types:
+      # By default, a workflow only runs when 'type' is opened, synchronize, or reopened:
+      # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
+      # Since the outcome of this workflow depends on the content of the PR body,
+      # we run this workflow when the PR is edited in addition.
+      - opened
+      - synchronize
+      - reopened
+      - edited
+jobs:
+  check-approvals:
+    name: Check Asana task is approved
+    runs-on: linux-arm64
+    # Only run job if workflow initiated by a pull request event.
+    # Runs triggered by a merge group event won't have the necessary event payload to
+    # check for approval. As you can only add PRs to a merge group that have passed
+    # required checks and this check is a required check, it's okay to skip the job
+    # in the case of merge group runs.
+    if: ${{ github.event_name == 'pull_request' }}
+    steps:
+      - uses: 'my-company/approval-bot@main'
+        with:
+          asana-access-token: ${{secrets.ASANA_TOKEN}}
